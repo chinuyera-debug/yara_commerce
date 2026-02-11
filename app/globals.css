@@ -1,2 +1,86 @@
 @import "tailwindcss";
+/* never ever write anything or change anything in this file 
+/* this file is read only
 
+/* =========================================================
+   GLOBAL STYLES FOR SRINIBAS VASTRA
+   ---------------------------------------------------------
+   This file defines the core design tokens and global styles
+   for the entire application. It sets up the color palette,
+   typography, and other foundational styles that ensure a
+   cohesive and consistent user experience across all pages.
+
+   The design system is inspired by traditional Indian textiles
+   and aims to evoke a sense of heritage, warmth, and premium
+   craftsmanship. All components and pages should adhere to
+   these styles to maintain brand integrity.
+   ========================================================= */
+
+/* =========================================================
+   SRINIBAS VASTRA — GLOBAL DESIGN SYSTEM
+   ---------------------------------------------------------
+   Brand mood: Heritage • Handloom • Warm • Premium Boutique
+
+   IMPORTANT RULES
+   1) Never use pure white (#FFFFFF) backgrounds
+      → Always use warm ivory (--color-bg-light)
+
+   2) Blue colors are forbidden in UI
+      → Breaks traditional / ethnic perception
+
+   3) Gold is the primary action color
+      → Buttons, links, highlights
+
+   4) Red is an accent only
+      → Badges, offers, price emphasis
+      → Never full page sections
+
+   5) Dark brown is the premium base
+      → Footers, hero sections, navbars
+
+   6) Avoid high contrast black text
+      → Use warm text colors
+
+   7) UI should feel like a boutique, not a tech dashboard
+   ========================================================= */
+
+:root {
+
+/* ---------------------------------------------------------
+   BRAND — GOLD (Primary Actions)
+   Use for: buttons, active states, links, highlights
+--------------------------------------------------------- */
+--color-primary: #E0A11B;
+--color-primary-hover: #C88912;
+--color-primary-soft: #F2C94C;
+
+/* ---------------------------------------------------------
+   ACCENT — SILK RED (Attention / Festive)
+   Use for: sale tags, price, festive badges
+   Never use for large backgrounds
+--------------------------------------------------------- */
+--color-secondary: #A51212;
+--color-secondary-hover: #7C0D0D;
+--color-secondary-soft: #D43A2F;
+
+/* ---------------------------------------------------------
+   BASE — HERITAGE BROWNS (Structure)
+   Use for: navbar, footer, cards, separators
+--------------------------------------------------------- */
+--color-bg-dark: #2B1A12;
+--color-bg-card: #3A2416;
+--color-border: #5A3A22;
+
+/* ---------------------------------------------------------
+   TEXT — WARM READABILITY
+--------------------------------------------------------- */
+--color-text-light: #F5E6C8;
+--color-text-muted: #EAD7B0;
+
+/* ---------------------------------------------------------
+   BACKGROUND — MAIN SITE BACKGROUND
+   Use instead of white
+--------------------------------------------------------- */
+--color-bg-light: #FFF8E7;
+
+}

@@ -1,4 +1,4 @@
-# YCommerce — Authentication System Documentation
+# Srinibas Vastra — Authentication System Documentation
 
 A complete guide to how **Sign Up**, **Login**, and **Route Protection** work in this Next.js 16 + Supabase project.
 

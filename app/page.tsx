@@ -14,7 +14,7 @@ export default function Home() {
             Elegant clothes, sarees and everyday fashion
           </p>
 
-          <Link href="/products">
+          <Link href="/home">
             <button style={btnPrimary}>Shop Now →</button>
           </Link>
         </div>
