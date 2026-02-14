@@ -38,23 +38,113 @@ const productCardTexture = {
 };
 
 import Link from "next/link";
+import { useRef, useEffect } from "react";
+import gsap from "gsap";
 
 export default function Home() {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+  const bgRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // Background movement
+      gsap.to(bgRef.current, {
+        backgroundPosition: "100px 100px",
+        duration: 20,
+        repeat: -1,
+        ease: "none",
+      });
+
+      // Text entrance
+      const tl = gsap.timeline();
+      tl.from(".hero-text", {
+        y: 100,
+        opacity: 0,
+        duration: 1,
+        stagger: 0.2,
+        ease: "power4.out",
+      });
+
+      // Floating elements animation
+      gsap.to(".floater", {
+        y: "random(-20, 20)",
+        x: "random(-10, 10)",
+        rotation: "random(-15, 15)",
+        duration: "random(2, 4)",
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        stagger: {
+          amount: 1,
+          from: "random",
+        },
+      });
+    }, heroRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
     <main>
       {/* HERO */}
-      <section style={heroSection}>
-        <div style={heroPatternOverlay}>
-          <div style={{ maxWidth: 900, margin: "auto" }}>
-            <h1 style={heroTitle}>
-              Srinibas Vastra
-              <span style={heroUnderline}></span>
-            </h1>
-            <p style={heroSubtitle}>
-              Where Tradition Meets Trend. Curated Sarees & Fashion for Every Occasion.
-            </p>
+      <section style={{ ...heroSection, position: "relative", overflow: "hidden" }} ref={heroRef}>
+        {/* Animated Background Overlay */}
+        <div
+          ref={bgRef}
+          style={{
+            position: "absolute",
+            top: -50, left: -50, right: -50, bottom: -50,
+            backgroundImage: "radial-gradient(circle at center, rgba(224, 161, 27, 0.15) 2px, transparent 2px)",
+            backgroundSize: "40px 40px",
+            opacity: 0.6,
+            zIndex: 0,
+          }}
+        />
+
+        {/* Floating Decorative Elements */}
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            className="floater"
+            style={{
+              position: "absolute",
+              top: `${Math.random() * 80 + 10}%`,
+              left: `${Math.random() * 90 + 5}%`,
+              fontSize: `${Math.random() * 2 + 1}rem`,
+              opacity: 0.2,
+              color: "#E0A11B",
+              zIndex: 0,
+              pointerEvents: "none",
+            }}
+          >
+            {["✨", "🏵️", "🧵", "⚜️"][i % 4]}
+          </div>
+        ))}
+
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 900, margin: "auto" }} ref={textRef}>
+          <h1 style={heroTitle} className="hero-text">
+            Srinibas Vastra
+            <span style={heroUnderline}></span>
+          </h1>
+          <p style={heroSubtitle} className="hero-text">
+            Where Tradition Meets Trend. Curated Sarees & Fashion for Every Occasion.
+          </p>
+          <div className="hero-text">
             <Link href="/home">
-              <button style={btnPrimary} onMouseOver={e => e.currentTarget.style.background = btnPrimaryHover.background} onMouseOut={e => e.currentTarget.style.background = btnPrimary.background}>Shop Now →</button>
+              <button
+                style={btnPrimary}
+                onMouseOver={e => {
+                  e.currentTarget.style.background = btnPrimaryHover.background;
+                  gsap.to(e.currentTarget, { scale: 1.05, duration: 0.3 });
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.background = btnPrimary.background;
+                  gsap.to(e.currentTarget, { scale: 1, duration: 0.3 });
+                }}
+              >
+                Shop Now →
+              </button>
             </Link>
           </div>
         </div>
