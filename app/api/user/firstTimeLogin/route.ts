@@ -36,6 +36,8 @@ export async function POST() {
             create: {
                 id: user.id,
                 email: user.email ?? "",
+                isAdmin: false,
+                
             },
         });
 
