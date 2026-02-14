@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Home, ShoppingBag, ShoppingCart, User, List, Package, Shield, ChevronDown } from "lucide-react";
+import { Home, ShoppingBag, ShoppingCart, User, List, Package, Shield, ChevronDown, ClipboardList } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -239,6 +239,7 @@ export default function Navbar() {
                         <NavLink href="/profile" Icon={User}>Profile</NavLink>
                         <NavLink href="/orders" Icon={List}>Orders</NavLink>
                         {isSeller && <NavLink href="/seller/products" Icon={Package}>Your Products</NavLink>}
+                        {isSeller && <NavLink href="/seller/orders" Icon={ClipboardList}>Your Orders</NavLink>}
                         {isAdmin && <NavLink href="/admin/sellers" Icon={Shield}>Sellers</NavLink>}
 
                         <button
@@ -350,6 +351,7 @@ export default function Navbar() {
                         <MobileLink href="/profile" onClick={() => setOpen(false)} Icon={User}>Profile</MobileLink>
                         <MobileLink href="/orders" onClick={() => setOpen(false)} Icon={List}>Orders</MobileLink>
                         {isSeller && <MobileLink href="/seller/products" onClick={() => setOpen(false)} Icon={Package}>Your Products</MobileLink>}
+                        {isSeller && <MobileLink href="/seller/orders" onClick={() => setOpen(false)} Icon={ClipboardList}>Your Orders</MobileLink>}
                         {isAdmin && <MobileLink href="/admin/sellers" onClick={() => setOpen(false)} Icon={Shield}>Sellers</MobileLink>}
 
                         <button

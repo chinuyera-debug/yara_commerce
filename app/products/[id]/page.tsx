@@ -154,13 +154,24 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         }
     };
 
-    const handleBuyNow = () => {
+    const handleBuyNow = async () => {
         if (!authenticated) {
             router.push("/login");
             return;
         }
-        // TODO: Buy now flow
-        router.push("/cart");
+        try {
+            setAdding(true);
+            // Add to cart if not already there
+            if (!cartQty || cartQty === 0) {
+                await axios.post(`/api/user/cart`, { productId: id, quantity: 1 });
+                setCartQty(1);
+            }
+            router.push("/checkout");
+        } catch (err: any) {
+            alert(err?.response?.data?.error || "Could not proceed to checkout");
+        } finally {
+            setAdding(false);
+        }
     };
 
     if (loading) {

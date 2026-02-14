@@ -41,6 +41,15 @@ import Link from "next/link";
 import { useRef, useEffect } from "react";
 import gsap from "gsap";
 
+const categories = [
+  { name: "Sarees", image: "/cottonSaree.jpg", href: "/products?category=saree" },
+  { name: "Men Wear", image: "/kurti.jpg", href: "/products?category=men" },
+  { name: "Women Wear", image: "/fork.jpg", href: "/products?category=women" },
+  { name: "Accessories", image: "/scarf.jpg", href: "/products?category=accessories" },
+  { name: "Handkerchiefs", image: "/hanckerchief.jpg", href: "/products?category=handkerchief" },
+  
+];
+
 export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
@@ -153,13 +162,35 @@ export default function Home() {
       <Divider />
 
       {/* CATEGORIES */}
-      <section style={section}>
+      <section style={{ padding: "60px 0", overflow: "hidden" }}>
         <h2 style={sectionTitle}>Shop by Category</h2>
-        <div style={grid}>
-          <Category name="Sarees" icon="🧣" href="/products?category=saree" />
-          <Category name="Men Wear" icon="👔" href="/products?category=men" />
-          <Category name="Women Wear" icon="👗" href="/products?category=women" />
-          <Category name="Accessories" icon="💍" href="/products?category=accessories" />
+        <style>{`
+          @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .marquee-track { display: flex; gap: 24px; animation: marquee 20s linear infinite; width: max-content; }
+          .marquee-track:hover { animation-play-state: paused; }
+          .cat-card { position: relative; width: 280px; height: 400px; border-radius: 18px; overflow: hidden; flex-shrink: 0; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; }
+          .cat-card:hover { transform: scale(1.05); box-shadow: 0 12px 40px rgba(224,161,27,0.25); }
+          .cat-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+          .cat-card:hover img { transform: scale(1.1); }
+          .cat-card .overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(43,26,18,0.85) 0%, rgba(43,26,18,0.2) 60%, transparent 100%); display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; }
+          .cat-card .overlay h3 { color: #F5E6C8; font-size: 1.2rem; font-weight: 700; margin: 0 0 4px; }
+          .cat-card .overlay span { color: #E0A11B; font-size: 0.85rem; font-weight: 600; }
+        `}</style>
+        <div style={{ marginTop: 30, padding: "0 20px" }}>
+          <div className="marquee-track">
+            {[...categories, ...categories].map((cat, i) => (
+              <Link href={cat.href} key={i} className="cat-card" style={{ textDecoration: "none" }}>
+                <img src={cat.image} alt={cat.name} />
+                <div className="overlay">
+                  <h3>{cat.name}</h3>
+                  <span>Explore →</span>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -169,10 +200,10 @@ export default function Home() {
       <section style={section}>
         <h2 style={sectionTitle}>Featured Collection</h2>
         <div style={grid}>
-          <ProductCard name="Silk Saree" price="₹2,499" texture />
-          <ProductCard name="Cotton Kurta" price="₹999" texture />
-          <ProductCard name="Designer Blouse" price="₹799" texture />
-          <ProductCard name="Casual Shirt" price="₹1,199" texture />
+          <ProductCard name="Silk Saree" price="" image="/Silk_Saree.jpg" texture />
+          <ProductCard name="Cotton Kurta" price="" image="/CottonKurta.jpg" texture />
+          <ProductCard name="Designer Blouse" price="" image="/DesignerBlouse.jpg" texture />
+          <ProductCard name="Casual Shirt" price="" image="/CasualShirt.jpg" texture />
         </div>
       </section>
 
@@ -192,23 +223,8 @@ export default function Home() {
 
 /* ---------- Components ---------- */
 
-function Category({ name, href, icon }: { name: string; href: string; icon: string }) {
-  return (
-    <Link href={href} style={categoryCard} onMouseOver={e => {
-      e.currentTarget.style.boxShadow = categoryCardHover.boxShadow;
-      e.currentTarget.style.border = categoryCardHover.border;
-    }} onMouseOut={e => {
-      e.currentTarget.style.boxShadow = categoryCard.boxShadow;
-      e.currentTarget.style.border = categoryCard.border;
-    }}>
-      <div style={categoryIcon}>{icon}</div>
-      <h3 style={{ margin: "10px 0 5px", fontSize: "1.1rem", color: "#2B1A12" }}>{name}</h3>
-      <p style={{ margin: 0, fontSize: "0.9rem", color: "#E0A11B", fontWeight: 600 }}>Explore →</p>
-    </Link>
-  );
-}
 
-function ProductCard({ name, price, texture }: { name: string; price: string; texture?: boolean }) {
+function ProductCard({ name, price, texture, image }: { name: string; price: string; texture?: boolean; image?: string }) {
   return (
     <div style={{ ...productCard, ...(texture ? productCardTexture : {}) }}
       onMouseOver={e => {
@@ -220,7 +236,9 @@ function ProductCard({ name, price, texture }: { name: string; price: string; te
         e.currentTarget.style.border = productCard.border;
       }}
     >
-      <div style={imagePlaceholder}></div>
+      <div style={imagePlaceholder}>
+        {image && <img src={image} alt={name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 10 }} />}
+      </div>
       <h4 style={{ margin: "12px 0 5px", fontSize: "1rem", color: "#2B1A12" }}>{name}</h4>
       <p style={{ margin: 0, fontSize: "1.1rem", fontWeight: 600, color: "#A51212" }}>{price}</p>
     </div>
@@ -315,9 +333,10 @@ const productCard = {
 
 const imagePlaceholder = {
   height: 180,
-  background: "linear-gradient(135deg, #EAD7B0 0%, #E0A11B 100%)",
   borderRadius: 10,
   marginBottom: 10,
+  overflow: "hidden" as const,
+  background: "linear-gradient(135deg, #EAD7B0 0%, #E0A11B 100%)",
 };
 
 const btnPrimary = {

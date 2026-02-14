@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import gsap from "gsap";
 import axios from "axios";
 import { Loader2, Package, Star, ArrowRight } from "lucide-react";
@@ -22,13 +22,40 @@ interface Product {
     productReviews: { rating: number }[];
 }
 
+/* ── Particle system for canvas background ── */
+interface Particle {
+    x: number; y: number; vx: number; vy: number;
+    radius: number; opacity: number; hue: number;
+    pulse: number; pulseSpeed: number;
+}
+
+function createParticles(w: number, h: number, count: number): Particle[] {
+    return Array.from({ length: count }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.3 - 0.15,
+        radius: Math.random() * 2.5 + 0.8,
+        opacity: Math.random() * 0.5 + 0.15,
+        hue: 30 + Math.random() * 20,          // gold-amber range
+        pulse: Math.random() * Math.PI * 2,
+        pulseSpeed: 0.008 + Math.random() * 0.015,
+    }));
+}
+
 export default function HomePage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [featured, setFeatured] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const heroRef = useRef<HTMLDivElement | null>(null);
     const heroOverlayRef = useRef<HTMLDivElement | null>(null);
+    const meshRef = useRef<HTMLDivElement | null>(null);
+    const shimmer1Ref = useRef<HTMLDivElement | null>(null);
+    const shimmer2Ref = useRef<HTMLDivElement | null>(null);
     const orbRefs = useRef<HTMLDivElement[]>([]);
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const particlesRef = useRef<Particle[]>([]);
+    const rafRef = useRef<number>(0);
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -47,47 +74,183 @@ export default function HomePage() {
         fetchAll();
     }, []);
 
+    /* ── Canvas particle animation loop ── */
+    const animateParticles = useCallback(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        const w = canvas.width;
+        const h = canvas.height;
+        const particles = particlesRef.current;
+
+        ctx.clearRect(0, 0, w, h);
+
+        for (const p of particles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.pulse += p.pulseSpeed;
+
+            // wrap around edges
+            if (p.x < -10) p.x = w + 10;
+            if (p.x > w + 10) p.x = -10;
+            if (p.y < -10) p.y = h + 10;
+            if (p.y > h + 10) p.y = -10;
+
+            const currentOpacity = p.opacity * (0.6 + 0.4 * Math.sin(p.pulse));
+            const currentRadius = p.radius * (0.85 + 0.15 * Math.sin(p.pulse * 1.3));
+
+            // glow
+            ctx.beginPath();
+            const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, currentRadius * 4);
+            grad.addColorStop(0, `hsla(${p.hue}, 80%, 65%, ${currentOpacity * 0.6})`);
+            grad.addColorStop(1, `hsla(${p.hue}, 80%, 65%, 0)`);
+            ctx.fillStyle = grad;
+            ctx.arc(p.x, p.y, currentRadius * 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // core
+            ctx.beginPath();
+            ctx.fillStyle = `hsla(${p.hue}, 85%, 72%, ${currentOpacity})`;
+            ctx.arc(p.x, p.y, currentRadius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Draw faint connecting lines between nearby particles
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 120) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = `rgba(224,161,27,${0.06 * (1 - dist / 120)})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        rafRef.current = requestAnimationFrame(animateParticles);
+    }, []);
+
+    /* ── Init canvas + resize handler ── */
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const resize = () => {
+            const heroEl = heroRef.current;
+            if (!heroEl) return;
+            const rect = heroEl.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            particlesRef.current = createParticles(rect.width, rect.height, 60);
+        };
+        resize();
+        window.addEventListener("resize", resize);
+        rafRef.current = requestAnimationFrame(animateParticles);
+        return () => {
+            window.removeEventListener("resize", resize);
+            cancelAnimationFrame(rafRef.current);
+        };
+    }, [animateParticles]);
+
+    /* ── GSAP orchestration ── */
     useEffect(() => {
         if (typeof window === "undefined") return;
-        const heroEl = heroRef.current;
         const heroOverlay = heroOverlayRef.current;
+        const mesh = meshRef.current;
+        const shimmer1 = shimmer1Ref.current;
+        const shimmer2 = shimmer2Ref.current;
         const orbs = orbRefs.current.filter(Boolean);
 
         const tl = gsap.timeline({ defaults: { ease: "sine.inOut" } });
 
+        /* pattern overlay drift & breathe */
         if (heroOverlay) {
-            tl.to(heroOverlay, { backgroundPosition: "70% 35%", duration: 28, repeat: -1, yoyo: true, ease: "sine.inOut" }, 0);
-            tl.to(heroOverlay, { opacity: 0.12, duration: 14, repeat: -1, yoyo: true, ease: "sine.inOut" }, 0);
+            tl.to(heroOverlay, { backgroundPosition: "70% 35%", duration: 18, repeat: -1, yoyo: true }, 0);
+            tl.to(heroOverlay, { opacity: 0.18, duration: 10, repeat: -1, yoyo: true }, 0);
         }
 
+        /* gradient mesh morph */
+        if (mesh) {
+            gsap.to(mesh, {
+                backgroundPosition: "100% 100%",
+                duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut",
+            });
+            gsap.to(mesh, {
+                opacity: 0.35, duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut",
+            });
+        }
+
+        /* shimmer sweeps */
+        if (shimmer1) {
+            gsap.fromTo(shimmer1,
+                { x: "-120%", opacity: 0.25 },
+                { x: "220%", opacity: 0, duration: 4, repeat: -1, repeatDelay: 3, ease: "power1.inOut" }
+            );
+        }
+        if (shimmer2) {
+            gsap.fromTo(shimmer2,
+                { x: "220%", opacity: 0.2 },
+                { x: "-120%", opacity: 0, duration: 5, repeat: -1, repeatDelay: 5, ease: "power1.inOut", delay: 2 }
+            );
+        }
+
+        /* orbs — larger, more dramatic motion paths */
         if (orbs.length) {
             gsap.set(orbs, { transformOrigin: "50% 50%" });
-            // slow, smooth drifting
+
+            // primary wandering motion — much bigger sweeps
+            orbs.forEach((orb, i) => {
+                const dir = i % 2 === 0 ? 1 : -1;
+                const duration = 7 + i * 2;
+                gsap.to(orb, {
+                    keyframes: [
+                        { x: `+=${dir * 60}`, y: "-=40", rotation: dir * 8, duration: duration * 0.5 },
+                        { x: `-=${dir * 30}`, y: "+=55", rotation: -dir * 6, duration: duration * 0.3 },
+                        { x: `+=${dir * 10}`, y: "-=15", rotation: 0, duration: duration * 0.2 },
+                    ],
+                    repeat: -1,
+                    yoyo: true,
+                    ease: "sine.inOut",
+                    force3D: true,
+                });
+            });
+
+            // scale + opacity pulse — more visible
             gsap.to(orbs, {
-                y: "+=28",
-                x: "+=38",
-                rotation: "+=2",
-                duration: 12,
+                scale: 1.15,
+                opacity: 1,
+                duration: 5,
                 repeat: -1,
                 yoyo: true,
-                stagger: 0.6,
+                stagger: { each: 0.5, from: "center" },
                 ease: "sine.inOut",
-                force3D: true,
             });
-            // gentler pulse so blobs feel organic
-            gsap.to(orbs, { scale: 1.03, opacity: 0.95, duration: 9, repeat: -1, yoyo: true, stagger: 0.6, ease: "sine.inOut" });
-            // softer entrance
-            gsap.from(orbs, { opacity: 0, scale: 0.90, duration: 1.2, stagger: 0.08, ease: "expo.out" });
+
+            // dramatic reveal entrance
+            gsap.from(orbs, {
+                opacity: 0,
+                scale: 0.4,
+                duration: 1.8,
+                stagger: 0.12,
+                ease: "expo.out",
+            });
         }
 
         if (!loading) {
             gsap.from('[data-anim="card"]', { opacity: 0, y: 18, scale: 0.985, duration: 0.6, stagger: 0.06, ease: "power2.out" });
         }
 
-        // Keep animations continuous and independent of pointer movement.
         return () => {
             tl.kill();
             gsap.killTweensOf(orbs);
+            if (mesh) gsap.killTweensOf(mesh);
+            if (shimmer1) gsap.killTweensOf(shimmer1);
+            if (shimmer2) gsap.killTweensOf(shimmer2);
         };
     }, [loading, products.length, featured.length]);
 
@@ -102,37 +265,91 @@ export default function HomePage() {
             <section
                 ref={heroRef}
                 style={{
-                    background: "linear-gradient(135deg, var(--color-bg-dark) 0%, #4A2A14 50%, var(--color-bg-card) 100%)",
-                    padding: "80px 24px 70px",
+                    background: "linear-gradient(135deg, var(--color-bg-dark) 0%, #4A2A14 40%, #5A3A22 65%, var(--color-bg-card) 100%)",
+                    padding: "100px 24px 90px",
                     textAlign: "center",
                     position: "relative",
                     overflow: "hidden",
                 }}
             >
-                {/* Decorative pattern overlay */}
+                {/* ── Canvas particle layer ── */}
+                <canvas
+                    ref={canvasRef}
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0 }}
+                />
+
+                {/* ── Morphing gradient mesh ── */}
+                <div ref={meshRef} style={{
+                    position: "absolute", inset: 0,
+                    background: "radial-gradient(ellipse at 20% 30%, rgba(224,161,27,0.18) 0%, transparent 50%), radial-gradient(ellipse at 80% 70%, rgba(200,140,90,0.14) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(150,100,50,0.1) 0%, transparent 60%)",
+                    backgroundSize: "200% 200%",
+                    backgroundPosition: "0% 0%",
+                    opacity: 0.22,
+                    pointerEvents: "none",
+                    mixBlendMode: "screen",
+                }} />
+
+                {/* ── Decorative pattern overlay ── */}
                 <div ref={heroOverlayRef} style={{
                     position: "absolute", inset: 0, opacity: 0.14,
-                    backgroundImage: "radial-gradient(circle at 20% 50%, var(--color-primary) 1px, transparent 1px), radial-gradient(circle at 80% 50%, var(--color-primary) 1px, transparent 1px)",
-                    backgroundSize: "90px 90px",
+                    backgroundImage:
+                        "radial-gradient(circle at 20% 50%, var(--color-primary) 1px, transparent 1px), radial-gradient(circle at 80% 50%, var(--color-primary) 1px, transparent 1px), radial-gradient(circle at 50% 20%, rgba(224,161,27,0.5) 0.5px, transparent 0.5px)",
+                    backgroundSize: "90px 90px, 90px 90px, 60px 60px",
                     backgroundPosition: "50% 50%",
                     transition: "background-position .6s, opacity .9s",
                     mixBlendMode: "normal",
                 }} />
 
-                {/* Floating decorative orbs (subtle blurred color blobs) */}
+                {/* ── Animated shimmer streaks ── */}
+                <div ref={shimmer1Ref} style={{
+                    position: "absolute", top: "30%", left: 0,
+                    width: "35%", height: 1,
+                    background: "linear-gradient(90deg, transparent, rgba(224,161,27,0.4), transparent)",
+                    pointerEvents: "none", opacity: 0,
+                    transform: "rotate(-8deg)",
+                }} />
+                <div ref={shimmer2Ref} style={{
+                    position: "absolute", top: "65%", left: 0,
+                    width: "25%", height: 1,
+                    background: "linear-gradient(90deg, transparent, rgba(255,200,100,0.3), transparent)",
+                    pointerEvents: "none", opacity: 0,
+                    transform: "rotate(5deg)",
+                }} />
+
+                {/* ── Floating decorative orbs — 6 total ── */}
+                {/* Orb 1 — large gold, top-left */}
                 <div
                     ref={(el) => { if (el) orbRefs.current[0] = el; }}
-                    style={{ position: "absolute", left: "4%", top: "14%", width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle at 30% 30%, rgba(224,161,27,0.36), transparent 40%), rgba(224,161,27,0.12)", filter: "blur(8px)", pointerEvents: "none", opacity: 0.92, transform: "translateZ(0)", boxShadow: "0 30px 80px rgba(224,161,27,0.16)" }}
+                    style={{ position: "absolute", left: "3%", top: "10%", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle at 30% 30%, rgba(224,161,27,0.45), transparent 50%), rgba(224,161,27,0.15)", filter: "blur(10px)", pointerEvents: "none", opacity: 0.95, transform: "translateZ(0)", boxShadow: "0 30px 80px rgba(224,161,27,0.2)" }}
                 />
+                {/* Orb 2 — warm brown, right */}
                 <div
                     ref={(el) => { if (el) orbRefs.current[1] = el; }}
-                    style={{ position: "absolute", right: "6%", top: "22%", width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle at 40% 40%, rgba(200,140,90,0.32), transparent 40%), rgba(74,42,20,0.12)", filter: "blur(8px)", pointerEvents: "none", opacity: 0.86, transform: "translateZ(0)", boxShadow: "0 24px 60px rgba(200,140,90,0.12)" }}
+                    style={{ position: "absolute", right: "5%", top: "18%", width: 240, height: 240, borderRadius: "50%", background: "radial-gradient(circle at 40% 40%, rgba(200,140,90,0.4), transparent 50%), rgba(74,42,20,0.15)", filter: "blur(12px)", pointerEvents: "none", opacity: 0.88, transform: "translateZ(0)", boxShadow: "0 24px 60px rgba(200,140,90,0.15)" }}
                 />
+                {/* Orb 3 — muted amber, bottom-left */}
                 <div
                     ref={(el) => { if (el) orbRefs.current[2] = el; }}
-                    style={{ position: "absolute", left: "20%", bottom: "2%", width: 160, height: 160, borderRadius: "50%", background: "radial-gradient(circle at 30% 30%, rgba(150,120,80,0.32), transparent 40%), rgba(150,120,80,0.08)", filter: "blur(8px)", pointerEvents: "none", opacity: 0.86, transform: "translateZ(0)", boxShadow: "0 20px 40px rgba(150,120,80,0.12)" }}
+                    style={{ position: "absolute", left: "18%", bottom: "0%", width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle at 30% 30%, rgba(150,120,80,0.38), transparent 50%), rgba(150,120,80,0.1)", filter: "blur(10px)", pointerEvents: "none", opacity: 0.88, transform: "translateZ(0)", boxShadow: "0 20px 40px rgba(150,120,80,0.15)" }}
                 />
-                <div style={{ position: "relative", zIndex: 1 }}>
+                {/* Orb 4 — deep gold, center-right */}
+                <div
+                    ref={(el) => { if (el) orbRefs.current[3] = el; }}
+                    style={{ position: "absolute", right: "22%", bottom: "8%", width: 180, height: 180, borderRadius: "50%", background: "radial-gradient(circle at 50% 50%, rgba(224,180,60,0.35), transparent 55%)", filter: "blur(14px)", pointerEvents: "none", opacity: 0.8, transform: "translateZ(0)", boxShadow: "0 16px 50px rgba(224,180,60,0.12)" }}
+                />
+                {/* Orb 5 — small bright spark, top-center */}
+                <div
+                    ref={(el) => { if (el) orbRefs.current[4] = el; }}
+                    style={{ position: "absolute", left: "48%", top: "5%", width: 100, height: 100, borderRadius: "50%", background: "radial-gradient(circle, rgba(255,210,100,0.5), transparent 60%)", filter: "blur(6px)", pointerEvents: "none", opacity: 0.75, transform: "translateZ(0)" }}
+                />
+                {/* Orb 6 — tiny ruby accent, bottom-center */}
+                <div
+                    ref={(el) => { if (el) orbRefs.current[5] = el; }}
+                    style={{ position: "absolute", left: "55%", bottom: "15%", width: 90, height: 90, borderRadius: "50%", background: "radial-gradient(circle, rgba(180,80,60,0.35), transparent 55%)", filter: "blur(8px)", pointerEvents: "none", opacity: 0.7, transform: "translateZ(0)" }}
+                />
+
+                {/* ── Hero text content ── */}
+                <div style={{ position: "relative", zIndex: 2 }}>
                     <p style={{
                         color: "var(--color-primary)",
                         fontSize: "0.85rem",

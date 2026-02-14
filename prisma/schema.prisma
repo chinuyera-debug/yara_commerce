@@ -353,6 +353,9 @@ model Order {
   addressId      String
   trackingId     String?
   notes          String?
+  confirmedAt    DateTime?
+  shippedAt      DateTime?
+  cancelledAt    DateTime?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
