@@ -14,74 +14,78 @@ datasource db {
 }
 
 model User {
-  id       String  @id @default(uuid())
-  email    String  @unique
+  id    String @id @default(uuid())
+  email String @unique
 
-  isAdmin  Boolean @default(false)
-  
-  userProfile userProfile?
-  userAddress userAddress?
+  isAdmin Boolean @default(false)
+
+  userProfile   userProfile?
+  userAddress   userAddress[]
   sellerProfile sellerProfile?
 }
+
 enum Gender {
   male
   female
   other
-   } 
+}
+
 model userProfile {
-  id        String   @id @default(uuid())
-  userId String @unique
+  id        String  @id @default(uuid())
+  userId    String  @unique
   firstName String?
   lastName  String?
   phone     String?
   age       Int?
   height    Float?
   weight    Float?
-  gender Gender? 
-  user      User     @relation(fields: [userId], references: [id])
+  gender    Gender?
+  user      User    @relation(fields: [userId], references: [id])
 }
 
 model userAddress {
-  id        String   @id @default(uuid())
-  userId    String   @unique
+  id        String  @id @default(uuid())
+  userId    String
   district  String?
   street    String?
   city      String?
   state     String?
   zipCode   String?
   country   String?
-  user      User     @relation(fields: [userId], references: [id])
-
+  isDefault Boolean @default(false)
+  user      User    @relation(fields: [userId], references: [id])
 }
 
 model sellerProfile {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  isRequestedForSeller Boolean @default(false)
-  shopName  String?
-  gstNumber String?
-  isApprovedByAdmin Boolean @default(false)
-  sellerAddress sellerAddress? 
-  sellerDocs sellerDocs?
-  user      User     @relation(fields: [userId], references: [id])
+  id                   String         @id @default(uuid())
+  userId               String         @unique
+  isRequestedForSeller Boolean        @default(false)
+  shopName             String?
+  gstNumber            String?
+  isApprovedByAdmin    Boolean        @default(false)
+  sellerAddress        sellerAddress?
+  sellerDocs           sellerDocs?
+  user                 User           @relation(fields: [userId], references: [id])
 }
+
 model sellerAddress {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  district  String?
-  street    String?
-  city      String?
-  state     String?
-  zipCode   String?
-  country   String?
+  id            String         @id @default(uuid())
+  userId        String         @unique
+  district      String?
+  street        String?
+  city          String?
+  state         String?
+  zipCode       String?
+  country       String?
   sellerProfile sellerProfile? @relation(fields: [userId], references: [userId])
 }
 
 model sellerDocs {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  panCard   String?
-  aadharCard String?
-  aadhardPicture String?
-  seller      sellerProfile     @relation(fields: [userId], references: [id])
+  id             String        @id @default(uuid())
+  userId         String        @unique
+  panCardFront   String?
+  panCardBack    String?
+  aadharCardFront String?
+  aadharCardBack String?
+  seller         sellerProfile @relation(fields: [userId], references: [id])
 }

@@ -3,42 +3,44 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma/client";
 import { getUser } from "@/lib/middlewares/withUser";
 export async function GET() {
-    try {
-        const supabase = await createClient();
+  try {
+    const supabase = await createClient();
 
-        // get authenticated user
-        const {
-            data: { user },
-            error,
-        } = await supabase.auth.getUser();
+    // get authenticated user
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
 
-        if (error || !user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        // fetch user profile from DB
-        const profile = await prisma.user.findUnique({
-            where: { id: user.id },
-            include: { userProfile: true,
-                userAddress: true,
-             },
-
-        });
-        if (!profile) { return NextResponse.json({ error: "Profile not found" }, { status: 404 }); }
-
-        return NextResponse.json({ profile });
+    if (error || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    catch (error) { console.error("Error fetching user profile:", error); return NextResponse.json({ error: "Internal Server Error" }, { status: 500 }); }
+
+    // fetch user profile from DB
+    const profile = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: {
+        userProfile: true,
+        userAddress: true,
+        sellerProfile: true,
+      },
+
+    });
+    if (!profile) { return NextResponse.json({ error: "Profile not found" }, { status: 404 }); }
+
+    return NextResponse.json({ profile });
+  }
+  catch (error) { console.error("Error fetching user profile:", error); return NextResponse.json({ error: "Internal Server Error" }, { status: 500 }); }
 }
 
 
-export async function POST(req:NextRequest) {
-    try {
-        const user = await getUser();
-        if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-        const body = await req.json();
+export async function POST(req: NextRequest) {
+  try {
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const body = await req.json();
     // Build update object with only provided fields to avoid overwriting with nulls
     const updateObj: any = {};
 
@@ -87,12 +89,12 @@ export async function POST(req:NextRequest) {
       create: { userId: user.id, ...updateObj },
     });
 
-        
-        
-        return NextResponse.json({ message: "Profile updated successfully", profile });
-    } catch (error) {
-        console.error("Error updating user profile:", error);
-        
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-    }
+
+
+    return NextResponse.json({ message: "Profile updated successfully", profile });
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }
