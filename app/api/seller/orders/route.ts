@@ -152,6 +152,16 @@ export async function PATCH(req: NextRequest) {
                 },
             });
 
+            // If confirmed, decrement stock for each item
+            if (action === "confirmed") {
+                for (const item of orderItems) {
+                    await tx.sellerProducts.update({
+                        where: { id: item.productId },
+                        data: { stock: { decrement: item.quantity } },
+                    });
+                }
+            }
+
             // If cancelled, restore stock
             if (action === "cancelled") {
                 for (const item of orderItems) {

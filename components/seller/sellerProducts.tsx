@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import {
-    Package, Plus, X, Upload, Loader2, Eye, EyeOff,
+    Package, Plus, Minus, X, Upload, Loader2, Eye, EyeOff,
     ArrowLeft, Check, Tag, Ruler, Weight, Scissors, MapPin,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -87,6 +87,7 @@ export default function SellerProductsPage() {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [updatingStock, setUpdatingStock] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         fetchProducts();
@@ -111,6 +112,23 @@ export default function SellerProductsPage() {
     const avgRating = (reviews: { rating: number }[]) => {
         if (!reviews.length) return null;
         return (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
+    };
+
+    const updateStock = async (productId: string, newStock: number) => {
+        if (newStock < 0) return;
+        setUpdatingStock((s) => ({ ...s, [productId]: true }));
+        const prev = products.find((p) => p.id === productId)?.stock ?? 0;
+        // Optimistic update
+        setProducts((ps) => ps.map((p) => p.id === productId ? { ...p, stock: newStock } : p));
+        try {
+            await axios.patch("/api/seller/products", { productId, stock: newStock });
+        } catch (err: any) {
+            // Rollback on error
+            setProducts((ps) => ps.map((p) => p.id === productId ? { ...p, stock: prev } : p));
+            alert(err?.response?.data?.error || "Failed to update stock");
+        } finally {
+            setUpdatingStock((s) => ({ ...s, [productId]: false }));
+        }
     };
 
     if (loading) {
@@ -240,7 +258,38 @@ export default function SellerProductsPage() {
                                     )}
                                 </div>
                                 <div className="flex items-center justify-between pt-2 text-xs" style={{ borderTop: "1px solid #e8dcc8", color: "#a09080" }}>
-                                    <span>Stock: {product.stock}</span>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                        <span>Stock:</span>
+                                        <button
+                                            onClick={() => updateStock(product.id, product.stock - 1)}
+                                            disabled={updatingStock[product.id] || product.stock <= 0}
+                                            style={{
+                                                width: 24, height: 24, borderRadius: 6,
+                                                border: "1px solid #e8dcc8", background: "#fdfaf4",
+                                                display: "flex", alignItems: "center", justifyContent: "center",
+                                                cursor: updatingStock[product.id] || product.stock <= 0 ? "not-allowed" : "pointer",
+                                                opacity: updatingStock[product.id] || product.stock <= 0 ? 0.4 : 1,
+                                            }}
+                                        >
+                                            <Minus size={12} />
+                                        </button>
+                                        <span style={{ fontWeight: 700, fontSize: 14, color: product.stock === 0 ? "var(--color-secondary)" : "var(--color-bg-dark)", minWidth: 20, textAlign: "center" }}>
+                                            {product.stock}
+                                        </span>
+                                        <button
+                                            onClick={() => updateStock(product.id, product.stock + 1)}
+                                            disabled={updatingStock[product.id]}
+                                            style={{
+                                                width: 24, height: 24, borderRadius: 6,
+                                                border: "1px solid #e8dcc8", background: "#fdfaf4",
+                                                display: "flex", alignItems: "center", justifyContent: "center",
+                                                cursor: updatingStock[product.id] ? "not-allowed" : "pointer",
+                                                opacity: updatingStock[product.id] ? 0.4 : 1,
+                                            }}
+                                        >
+                                            <Plus size={12} />
+                                        </button>
+                                    </div>
                                     {product.weaveType && <span>{formatLabel(product.weaveType)}</span>}
                                 </div>
                             </div>

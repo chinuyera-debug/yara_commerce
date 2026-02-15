@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientAuthNavbar from "@/components/global/client-auth-navbar";
+import Footer from "@/components/global/footer";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 
 const geistSans = Geist({
@@ -35,6 +36,7 @@ export default async function RootLayout({
       >
         <ClientAuthNavbar initialAuthenticated={Boolean(user)} />
         {children}
+        <Footer />
       </body>
     </html>
   );

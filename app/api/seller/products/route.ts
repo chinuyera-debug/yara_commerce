@@ -118,3 +118,51 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+
+// PATCH: Update stock for a product
+export async function PATCH(req: NextRequest) {
+    try {
+        const user = await getUser();
+        if (!user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const seller = await prisma.sellerProfile.findUnique({
+            where: { userId: user.id },
+            select: { id: true, isApprovedByAdmin: true },
+        });
+
+        if (!seller?.isApprovedByAdmin) {
+            return NextResponse.json({ error: "Not an approved seller" }, { status: 403 });
+        }
+
+        const body = await req.json();
+        const { productId, stock } = body;
+
+        if (!productId) {
+            return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
+        }
+        if (stock == null || stock < 0) {
+            return NextResponse.json({ error: "Stock must be 0 or greater" }, { status: 400 });
+        }
+
+        // Verify product belongs to this seller
+        const product = await prisma.sellerProducts.findFirst({
+            where: { id: productId, userId: seller.id },
+        });
+
+        if (!product) {
+            return NextResponse.json({ error: "Product not found or not yours" }, { status: 404 });
+        }
+
+        const updated = await prisma.sellerProducts.update({
+            where: { id: productId },
+            data: { stock: parseInt(stock) },
+        });
+
+        return NextResponse.json({ success: true, product: updated });
+    } catch (error: any) {
+        console.error("Error updating stock:", error);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+}

@@ -104,13 +104,7 @@ export async function POST(req: NextRequest) {
                 },
             });
 
-            // Decrement stock for each product
-            for (const item of cart.items) {
-                await tx.sellerProducts.update({
-                    where: { id: item.productId },
-                    data: { stock: { decrement: item.quantity } },
-                });
-            }
+            // Stock is NOT decremented here — it will be decremented when the seller accepts (confirms) the order.
 
             // Clear cart items
             await tx.cartItem.deleteMany({ where: { cartId: cart.id } });

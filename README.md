@@ -649,3 +649,129 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+---
+
+## Feature Overview
+
+Beyond authentication, the platform includes a full suite of e-commerce features:
+
+### 🛍️ Product Catalog
+- **Browse products** with rich filters (category, fabric, weave, color, pattern, occasion)
+- **Search** across product names and descriptions
+- **Sort** by newest, price ascending, or price descending
+- **Product detail pages** with image gallery, zoom, ratings, reviews, breadcrumbs, and trust badges
+- **Category pages** (Saree, Lehenga, Dupatta, Dress Material, etc.)
+
+### 🛒 Shopping Cart & Checkout
+- Add/remove products, adjust quantities
+- **3-step checkout** flow: Address → Payment → Review
+- Address management (add/edit shipping addresses)
+- **Cash on Delivery** payment method
+- Order placement with stock validation
+
+### 📦 Order Management
+- **Buyer order history** with status tracking (Pending → Confirmed → Shipped → Delivered)
+- **Seller order dashboard** — accept, reject, ship, or cancel orders
+- **Automatic stock reduction** when seller confirms (accepts) an order
+- **Stock restoration** on order cancellation
+
+### 📊 Stock Management
+- **Auto stock decrement** — stock reduces only when seller accepts an order (not at checkout)
+- **Manual stock controls** — sellers can adjust stock using +/− buttons on their product cards
+- **Optimistic UI** updates with error rollback for instant feedback
+- **API endpoint**: `PATCH /api/seller/products` for programmatic stock updates
+
+### 👤 User Features
+- Profile management (name, phone, measurements)
+- Address book management
+- Order history with detailed status
+- Apply to become a seller
+
+### 🏪 Seller Features
+- Product listing with full textile attributes (fabric, weave, origin, dimensions, etc.)
+- Image upload via Supabase Storage
+- Order management with accept/reject/ship workflow
+- Manual stock adjustment controls
+
+### 🔧 Admin Features
+- Seller application approval/rejection dashboard
+
+### 🦶 Site Footer
+- **Newsletter subscription** banner with gold gradient
+- **4-column responsive grid**: Brand & Contact | Quick Links | My Account | Information
+- **Contact details**: Phone, email, address
+- **Social media links**: Facebook, Instagram, Twitter, YouTube
+- **Trust bar**: Free shipping, secure payments, authentic handloom, easy returns
+- **Copyright** with branding
+- **Fully responsive** — columns stack on mobile
+- Built with CSS variables from the design system (heritage brown + gold palette)
+
+### 📱 Mobile Responsiveness
+- Responsive navbar with hamburger menu and slide-out drawer
+- Responsive footer with auto-stacking columns
+- Product catalog with filter sidebar
+
+---
+
+## Folder Structure (Full)
+
+```
+y-commerce/
+├── app/
+│   ├── (auth)/
+│   │   ├── login/page.tsx            # Login page
+│   │   └── signup/page.tsx           # Signup page
+│   ├── admin/sellers/page.tsx        # Admin: seller approval
+│   ├── api/
+│   │   ├── admin/sellers/route.ts    # Admin API
+│   │   ├── orders/route.ts           # Order creation
+│   │   ├── products/route.ts         # Product listing API
+│   │   ├── products/[id]/route.ts    # Product detail API
+│   │   ├── seller/
+│   │   │   ├── apply/route.ts        # Seller application
+│   │   │   ├── orders/route.ts       # Seller order management
+│   │   │   ├── products/route.ts     # Seller product CRUD + stock
+│   │   │   ├── upload-image/route.ts # Image upload
+│   │   │   └── upload-doc/route.ts   # Document upload
+│   │   └── user/
+│   │       ├── adress/route.ts       # Address management
+│   │       ├── cart/route.ts         # Cart operations
+│   │       ├── firstTimeLogin/route.ts
+│   │       ├── me/route.ts           # User info
+│   │       └── profile/route.ts      # Profile management
+│   ├── auth/callback/route.ts        # Email confirmation
+│   ├── cart/page.tsx                  # Shopping cart
+│   ├── checkout/page.tsx             # 3-step checkout
+│   ├── home/page.tsx                 # Homepage (animated)
+│   ├── orders/page.tsx               # Order history
+│   ├── products/page.tsx             # Product catalog
+│   ├── products/[id]/page.tsx        # Product detail
+│   ├── profile/page.tsx              # User profile
+│   ├── profile/editProfile/page.tsx  # Edit profile
+│   ├── profile/editAddress/page.tsx  # Edit address
+│   ├── profile/applyForSeller/page.tsx # Seller application
+│   ├── seller/orders/page.tsx        # Seller orders
+│   ├── seller/products/page.tsx      # Seller products
+│   ├── globals.css                   # Design system
+│   └── layout.tsx                    # Root layout (navbar + footer)
+├── components/
+│   ├── admin/sellerManagement.tsx     # Admin seller UI
+│   ├── auth/
+│   │   ├── login-form.tsx            # Login form
+│   │   └── signup-form.tsx           # Signup form
+│   ├── global/
+│   │   ├── client-auth-navbar.tsx    # Responsive navbar
+│   │   ├── footer.tsx                # Responsive footer
+│   │   └── navbar.tsx                # Authenticated navbar
+│   ├── profile/
+│   │   ├── applyForSeller/apply.tsx  # Seller application form
+│   │   ├── editAddress/editAddress.tsx
+│   │   └── editProfile/editProfile.tsx
+│   └── seller/sellerProducts.tsx     # Seller product cards + stock
+├── lib/supabase/
+│   ├── client.ts                     # Browser Supabase client
+│   └── server.ts                     # Server Supabase client
+├── prisma/schema.prisma              # Database schema
+└── proxy.ts                          # Route middleware
+```
