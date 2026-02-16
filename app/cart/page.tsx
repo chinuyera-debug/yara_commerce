@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
+import styles from "./cart.module.css";
 import { Loader2, Package, Trash2, Plus, Minus } from "lucide-react";
 
 interface Product {
@@ -90,14 +91,13 @@ export default function CartPage() {
     );
 
     return (
-        <main style={{ maxWidth: 1100, margin: "24px auto", padding: "0 16px" }}>
+        <main className={styles.container}>
             <h1 style={{ fontSize: 20, fontWeight: 800, marginBottom: 16 }}>Your Cart</h1>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 24 }}>
-                <div>
+            <div className={styles.grid}>
+                <div className={styles.itemsCol}>
                     {cart.items.map((it) => (
-                        <div key={it.id} style={{ display: "flex", gap: 12, padding: 12, borderRadius: 12, border: "1px solid #e8dcc8", marginBottom: 12, alignItems: "center" }}>
-                            <div style={{ width: 96, height: 96, borderRadius: 8, overflow: "hidden", background: "#f5eee0", flexShrink: 0 }}>
+                        <div key={it.id} className={styles.itemCard} style={{ display: "flex", gap: 12, padding: 12, borderRadius: 12, border: "1px solid #e8dcc8", marginBottom: 12, alignItems: "center" }}>
+                            <div className={styles.itemImage} style={{ width: 96, height: 96, borderRadius: 8, overflow: "hidden", background: "#f5eee0", flexShrink: 0 }}>
                                 {it.product?.images?.[0] ? (
                                     <img src={it.product.images[0]} alt={it.product.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                 ) : (
@@ -106,7 +106,7 @@ export default function CartPage() {
                                     </div>
                                 )}
                             </div>
-                            <div style={{ flex: 1 }}>
+                            <div className={styles.itemContent} style={{ flex: 1 }}>
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                                     <div>
                                         <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>{it.product?.name}</h3>
@@ -118,7 +118,7 @@ export default function CartPage() {
                                     </div>
                                 </div>
 
-                                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
+                                <div className={styles.controls} style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
                                     <button disabled={updating[it.productId]} onClick={() => updateQuantity(it.productId, Math.max(1, it.quantity - 1))} style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid #e8dcc8", background: "white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
                                         <Minus size={14} />
                                     </button>
@@ -139,7 +139,7 @@ export default function CartPage() {
                     ))}
                 </div>
 
-                <aside style={{ border: "1px solid #e8dcc8", borderRadius: 12, padding: 16, height: "fit-content" }}>
+                <aside className={styles.aside}>
                     <h3 style={{ marginTop: 0 }}>Order Summary</h3>
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
                         <span style={{ color: "#8a7560" }}>Subtotal</span>

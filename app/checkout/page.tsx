@@ -8,6 +8,7 @@ import {
     CheckCircle2, Package, Truck, Plus,
 } from "lucide-react";
 import Link from "next/link";
+import styles from "./checkout.module.css";
 
 interface Address {
     id: string;
@@ -135,7 +136,7 @@ export default function CheckoutPage() {
     const stepIndex = STEPS.indexOf(step);
 
     return (
-        <main style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 16px 64px" }}>
+        <main className={styles.container}>
             {/* ── Stepper ── */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: 36 }}>
                 {STEPS.map((s, i) => (
@@ -171,12 +172,12 @@ export default function CheckoutPage() {
                 </div>
             )}
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24, alignItems: "start" }}>
+            <div className={styles.grid}>
                 {/* ── Left panel ── */}
-                <div>
+                <div className={styles.left}>
                     {/* Address step */}
                     {step === "Address" && (
-                        <section style={{ border: "1px solid #e8dcc8", borderRadius: 14, padding: 24 }}>
+                        <section className={styles.sectionCard}>
                             <h2 style={{ margin: "0 0 20px", fontSize: 18, fontWeight: 800, display: "flex", alignItems: "center", gap: 8 }}>
                                 <MapPin size={20} style={{ color: "var(--color-primary)" }} /> Select Delivery Address
                             </h2>
@@ -236,7 +237,7 @@ export default function CheckoutPage() {
                             ) : (
                                 <div style={{ marginTop: 16, padding: 16, border: "1px solid #e8dcc8", borderRadius: 12, background: "#fdfaf4" }}>
                                     <h4 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 700 }}>New Address</h4>
-                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                                    <div className={styles.addressGrid}>
                                         {(["street", "city", "district", "state", "zipCode", "country"] as const).map((f) => (
                                             <input
                                                 key={f}
@@ -286,7 +287,7 @@ export default function CheckoutPage() {
 
                     {/* Payment step */}
                     {step === "Payment" && (
-                        <section style={{ border: "1px solid #e8dcc8", borderRadius: 14, padding: 24 }}>
+                        <section className={styles.sectionCard}>
                             <h2 style={{ margin: "0 0 20px", fontSize: 18, fontWeight: 800, display: "flex", alignItems: "center", gap: 8 }}>
                                 <CreditCard size={20} style={{ color: "var(--color-primary)" }} /> Payment Method
                             </h2>
@@ -329,7 +330,7 @@ export default function CheckoutPage() {
 
                     {/* Review step */}
                     {step === "Review" && (
-                        <section style={{ border: "1px solid #e8dcc8", borderRadius: 14, padding: 24 }}>
+                        <section className={styles.sectionCard}>
                             <h2 style={{ margin: "0 0 20px", fontSize: 18, fontWeight: 800, display: "flex", alignItems: "center", gap: 8 }}>
                                 <Package size={20} style={{ color: "var(--color-primary)" }} /> Review Your Order
                             </h2>
@@ -397,11 +398,7 @@ export default function CheckoutPage() {
                 </div>
 
                 {/* ── Right sidebar — Order Summary ── */}
-                <aside style={{
-                    border: "1px solid #e8dcc8", borderRadius: 14, padding: 20,
-                    position: "sticky", top: 24,
-                    background: "#fdfaf4",
-                }}>
+                <aside className={styles.right}>
                     <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 800 }}>Order Summary</h3>
 
                     {cart.items.map((it) => (

@@ -10,6 +10,7 @@ import {
     Shield, ChevronLeft, ChevronRight, Heart, Share2, Tag, Ruler, Weight,
     Palette, Sparkles, Scissors, Plus, Minus,
 } from "lucide-react";
+import styles from "./product.module.css";
 
 const formatLabel = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -243,23 +244,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Main Product Section */}
-            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40 }}>
+            <div className={styles.productGrid}>
 
                 {/* ═══ LEFT: Image Gallery ═══ */}
-                <div>
+                <div className={styles.imageSection}>
                     {/* Main Image */}
-                    <div
-                        style={{
-                            position: "relative",
-                            aspectRatio: "1",
-                            borderRadius: 16,
-                            overflow: "hidden",
-                            backgroundColor: "#f5eee0",
-                            border: "1px solid #e8dcc8",
-                            cursor: "zoom-in",
-                        }}
-                        onClick={() => setImgZoom(!imgZoom)}
-                    >
+                    <div className={styles.mainImage} onClick={() => setImgZoom(!imgZoom)}>
                         {product.images[selectedImage] ? (
                             <img
                                 src={product.images[selectedImage]}
@@ -333,7 +323,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
                     {/* Thumbnails */}
                     {product.images.length > 1 && (
-                        <div style={{ display: "flex", gap: 8, marginTop: 12, overflowX: "auto", paddingBottom: 4 }}>
+                        <div className={styles.thumbnails}>
                             {product.images.map((img, i) => (
                                 <div
                                     key={i}
@@ -354,7 +344,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 </div>
 
                 {/* ═══ RIGHT: Product Info ═══ */}
-                <div>
+                <div className={styles.infoSection}>
                     {/* Seller */}
                     {product.seller.shopName && (
                         <p style={{ fontSize: 12, color: "var(--color-primary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 6 }}>
@@ -426,7 +416,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     </div>
 
                     {/* Action Buttons */}
-                    <div style={{ display: "flex", gap: 12, marginBottom: 24, alignItems: "center" }}>
+                    <div className={styles.actionButtons}>
                         {cartQty && cartQty > 0 ? (
                             <div style={{ display: "flex", gap: 12, alignItems: "center", flex: 1 }}>
                                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -532,15 +522,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* ═══ PRODUCT DETAILS TABLE ═══ */}
-            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 32px" }}>
-                <div style={{
-                    backgroundColor: "var(--color-bg-light)", border: "1px solid #e8dcc8",
-                    borderRadius: 16, padding: "28px 32px",
-                }}>
+            <div className={styles.detailsWrapper}>
+                <div className={styles.detailsCard}>
                     <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--color-bg-dark)", marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
                         <Tag size={18} style={{ color: "var(--color-primary)" }} /> Product Details
                     </h2>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 40px" }}>
+                    <div className={styles.detailsGrid}>
                         <DetailRow icon={<Package size={14} />} label="Category" value={formatLabel(product.category)} />
                         {product.subCategory && <DetailRow icon={<Tag size={14} />} label="Sub-category" value={formatLabel(product.subCategory)} />}
                         {product.fabricType && <DetailRow icon={<Scissors size={14} />} label="Fabric" value={formatLabel(product.fabricType)} />}
